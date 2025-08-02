@@ -1,0 +1,25 @@
+# Ignore IDE files
+*.iml
+.idea/
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+
+# Ignore build output
+/build/
+app/build/
+.gradle/
+.cxx/
+.externalNativeBuild/
+
+# Ignore OS files
+.DS_Store
+
+# Ignore local configuration
+local.properties
+
+# Ignore screenshots, logs, or test captures
+/captures/

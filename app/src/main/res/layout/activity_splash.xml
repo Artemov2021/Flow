@@ -1,0 +1,17 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="@color/background_dark">  <!-- Blue background -->
+
+    <ImageView
+        android:id="@+id/animationImageView"
+        android:layout_width="342dp"
+        android:layout_height="176dp"
+        android:src="@drawable/app_loading1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="280dp"
+        android:layout_marginStart="18dp"/>
+
+</RelativeLayout>
