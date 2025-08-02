@@ -4,7 +4,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.widget.ImageView;
 
-public class Animator {
+public class SplashAnimator {
     private final ImageView imageView;
     private final Handler handler = new Handler(Looper.getMainLooper());
 
@@ -20,7 +20,7 @@ public class Animator {
 
     private int currentIndex = 0;
 
-    public Animator(ImageView imageView) {
+    public SplashAnimator(ImageView imageView) {
         this.imageView = imageView;
     }
 

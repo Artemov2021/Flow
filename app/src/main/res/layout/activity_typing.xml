@@ -2,6 +2,67 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@color/background_dark">
+
+    <ImageButton
+        android:id="@+id/backButton"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="19dp"
+        android:layout_marginTop="41dp"
+        android:background="@null"
+        android:scaleType="centerCrop"
+        android:src="@drawable/go_back_button"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/timerSymbol"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:src="@drawable/timer_symbol"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="160dp"
+        android:layout_marginTop="48dp" />
+
+    <TextView
+        android:id="@+id/timerText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1:00"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:fontFamily="@font/roboto_medium"
+        android:layout_marginStart="187dp"
+        android:layout_marginTop="45dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/editText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginEnd="50dp"
+        android:layout_marginTop="410dp"
+        android:background="@color/background_dark"
+        android:text="Your apple with or"
+        android:textSize="30sp"
+        android:textColor="#575757"
+        android:cursorVisible="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        android:inputType="text"
+        android:fontFamily="@font/roboto_medium"
+        android:padding="0dp"
+        android:textCursorDrawable="@drawable/custom_cursor"
+        android:includeFontPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -13,7 +13,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 
 public class SplashActivity extends Activity {
-    private Animator animator;
+    private SplashAnimator animator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +57,7 @@ public class SplashActivity extends Activity {
         ImageView animationImageView = findViewById(R.id.animationImageView);
 
         // Create Animator instance with the ImageView
-        animator = new Animator(animationImageView);
+        animator = new SplashAnimator(animationImageView);
 
         // Start the animation
         animator.start();
