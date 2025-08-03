@@ -33,6 +33,10 @@
             android:name=".TypingActivity"
             android:exported="true" />
 
+        <activity
+            android:name=".ResultActivity"
+            android:exported="true" />
+
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package com.wpmapp.flow;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -7,11 +9,13 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -21,18 +25,34 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.MotionEvent;
 
 import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnTouchListener;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.EditText;
+import android.widget.TextView;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.wpmapp.flow.views.CustomEditText;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.Locale;
+import java.util.Random;
 
 
 public class TypingActivity extends AppCompatActivity  {
 
+    private CountDownTimer countDownTimer;
+    private boolean timerStarted = false;
+    private TextView timerText;
+    private EditText editText;
 
 
     @Override
@@ -40,11 +60,15 @@ public class TypingActivity extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_typing);
 
+        editText = findViewById(R.id.editText);
+        timerText = findViewById(R.id.timerText);
+
         setSwipeToShowBars();
         setBackButtonListener();
         setTextFieldFocused();
         setTextFieldMoveListener();
-
+        setKeyboardHideListener();
+        setRandomText();
     }
 
     private void setSwipeToShowBars() {
@@ -88,8 +112,6 @@ public class TypingActivity extends AppCompatActivity  {
     }
     @SuppressLint("ClickableViewAccessibility")
     private void setTextFieldFocused() {
-        EditText editText = findViewById(R.id.editText);
-
         // Step 1: Request focus so the cursor is visible
         editText.requestFocus();
 
@@ -150,7 +172,6 @@ public class TypingActivity extends AppCompatActivity  {
         });
     }
     private void setTextFieldMoveListener() {
-        EditText editText = findViewById(R.id.editText);
         View rootView = getWindow().getDecorView().getRootView();
         int moveDistanceDp = 145;
         int moveDistancePx = (int) TypedValue.applyDimension(
@@ -183,7 +204,133 @@ public class TypingActivity extends AppCompatActivity  {
             }
         });
     }
+    private void setKeyboardHideListener() {
+        editText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (!hasFocus) {
+                // Hide keyboard when EditText loses focus
+                hideKeyboard(v);
+            }
+        });
+    }
+    private void hideKeyboard(View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+    private void setRandomText() {
+        try {
+            String randomText = getRandomTextFromRaw(R.raw.texts);
+            editText.setText(randomText);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private String getRandomTextFromRaw(int rawResId) throws IOException {
+        InputStream is = getResources().openRawResource(rawResId);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder allText = new StringBuilder();
+        String line;
 
+        while ((line = reader.readLine()) != null) {
+            allText.append(line).append("\n");
+        }
+        reader.close();
+
+        // Split texts by empty line(s)
+        String[] texts = allText.toString().split("\\n\\s*\\n");
+
+        Random random = new Random();
+        int index = random.nextInt(texts.length);
+        return texts[index].trim();
+    }
+
+    public void startTimer() {
+        countDownTimer = new CountDownTimer(5_000, 1_000) {  // 1 minute, ticking every second
+
+            @Override
+            public void onTick(long millisUntilFinished) {
+                int secondsLeft = (int) (millisUntilFinished / 1000);
+                int minutes = secondsLeft / 5;
+                int seconds = secondsLeft % 5;
+                timerText.setText(String.format(Locale.getDefault(), "%d:%02d", minutes, seconds));
+            }
+
+            @Override
+            public void onFinish() {
+                timerText.setText("0:00");
+                closeKeyboard();
+                openResultActivity();
+            }
+        }.start();
+    }
+    private void closeKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+        if (imm != null) {
+            imm.hideSoftInputFromWindow(editText.getWindowToken(), 0);
+        }
+    }
+    private void openResultActivity() {
+        Intent intent = new Intent(this, ResultActivity.class);
+        startActivity(intent);
+        finish(); // Optional: close current activity if you want
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void disableCursorMovement() {
+        editText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+                return false;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+                return false;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode mode) {
+            }
+        });
+
+        // Prevent touch selection
+        editText.setLongClickable(false);
+        editText.setTextIsSelectable(false);
+        editText.setFocusable(true);
+        editText.setFocusableInTouchMode(true);
+
+        // Intercept touch to disallow cursor movement
+        editText.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                // Consume touch event to prevent cursor move
+                return true;
+            }
+        });
+    }
 
 
 
@@ -199,73 +346,6 @@ public class TypingActivity extends AppCompatActivity  {
         spannable.setSpan(new ForegroundColorSpan(Color.GREEN), 15, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         editText.setText(spannable);
-    }
-    private void test() {
-        EditText editText = findViewById(R.id.editText);
-
-        final String defaultText = "Hello world";
-        final int grayColor = Color.parseColor("#575757");
-        final int whiteColor = Color.parseColor("#FFFFFF");
-
-        final SpannableStringBuilder spannable = new SpannableStringBuilder(defaultText);
-        spannable.setSpan(new ForegroundColorSpan(grayColor), 0, defaultText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        editText.setText(spannable);
-        editText.setSelection(0);
-
-        editText.addTextChangedListener(new TextWatcher() {
-            int lastLength = 0;
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                lastLength = s.length();
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                // no-op
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                // Remove listener temporarily to avoid infinite loop
-                editText.removeTextChangedListener(this);
-
-                int cursorPos = editText.getSelectionStart();
-
-                // Make sure cursor is within bounds
-                if (cursorPos < 0) cursorPos = 0;
-                if (cursorPos > defaultText.length()) cursorPos = defaultText.length();
-
-                // We compare user input char-by-char with defaultText
-                // Only advance coloring if typed char matches the expected char
-                int coloredLength = 0;
-
-                CharSequence input = s.toString();
-                for (int i = 0; i < input.length() && i < defaultText.length(); i++) {
-                    if (input.charAt(i) == defaultText.charAt(i)) {
-                        coloredLength = i + 1;
-                    } else {
-                        break; // Stop coloring on first mismatch
-                    }
-                }
-
-                // Create new SpannableStringBuilder and apply colors
-                SpannableStringBuilder newSpan = new SpannableStringBuilder(defaultText);
-                // Gray for all
-                newSpan.setSpan(new ForegroundColorSpan(grayColor), 0, defaultText.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                // White for correctly typed chars
-                if (coloredLength > 0) {
-                    newSpan.setSpan(new ForegroundColorSpan(whiteColor), 0, coloredLength, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-                }
-
-                // Set text and move cursor after last correctly typed char
-                editText.setText(newSpan);
-                editText.setSelection(coloredLength);
-
-                editText.addTextChangedListener(this);
-            }
-        });
     }
 
 }

@@ -7,8 +7,8 @@
 
     <ImageButton
         android:id="@+id/backButton"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
+        android:layout_width="60dp"
+        android:layout_height="57dp"
         android:layout_marginStart="19dp"
         android:layout_marginTop="41dp"
         android:background="@null"
@@ -40,28 +40,27 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <EditText
+    <com.wpmapp.flow.views.CustomEditText
         android:id="@+id/editText"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="50dp"
-        android:layout_marginEnd="50dp"
-        android:layout_marginTop="410dp"
+        android:layout_height="85dp"
+        android:layout_marginStart="53dp"
+        android:layout_marginTop="400dp"
+        android:layout_marginEnd="53dp"
         android:background="@color/background_dark"
-        android:text="Your apple with or"
-        android:textSize="30sp"
-        android:textColor="#575757"
         android:cursorVisible="true"
         android:focusable="true"
         android:focusableInTouchMode="true"
-        android:inputType="text"
         android:fontFamily="@font/roboto_medium"
-        android:padding="0dp"
-        android:textCursorDrawable="@drawable/custom_cursor"
+        android:inputType="textNoSuggestions"
         android:includeFontPadding="false"
-        app:layout_constraintTop_toTopOf="parent"
+        android:padding="0dp"
+        android:textColor="#575757"
+        android:textCursorDrawable="@drawable/custom_cursor"
+        android:textSize="30sp"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 
