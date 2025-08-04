@@ -89,7 +89,7 @@ public class ResultActivity extends AppCompatActivity {
 
 
     public void setResult(TypingResult result) {
-        String wpm = String.valueOf(result.typedWords);
+        String wpm = String.valueOf(result.correctWords);
 
         setWMPMargin(wpm);
         setWPMAnimation(result.correctWords);
