@@ -73,7 +73,6 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         setTextFieldFocused();
         setTextFieldMoveListener();
         setKeyboardHideListener();
-        setRandomText();
     }
 
     @Override
@@ -232,32 +231,6 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
-    private void setRandomText() {
-        try {
-            String randomText = getRandomTextFromRaw(R.raw.texts);
-            editText.setText(randomText);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-    private String getRandomTextFromRaw(int rawResId) throws IOException {
-        InputStream is = getResources().openRawResource(rawResId);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder allText = new StringBuilder();
-        String line;
-
-        while ((line = reader.readLine()) != null) {
-            allText.append(line).append("\n");
-        }
-        reader.close();
-
-        // Split texts by empty line(s)
-        String[] texts = allText.toString().split("\\n\\s*\\n");
-
-        Random random = new Random();
-        int index = random.nextInt(texts.length);
-        return texts[index].trim();
-    }
 
 
 
@@ -269,13 +242,13 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
 
 
     public void startTimer() {
-        countDownTimer = new CountDownTimer(5_000, 1_000) {  // 1 minute, ticking every second
+        countDownTimer = new CountDownTimer(60_000, 1_000) {  // 1 minute, ticking every second
 
             @Override
             public void onTick(long millisUntilFinished) {
                 int secondsLeft = (int) (millisUntilFinished / 1000);
-                int minutes = secondsLeft / 5;
-                int seconds = secondsLeft % 5;
+                int minutes = secondsLeft / 60;
+                int seconds = secondsLeft % 60;
                 timerText.setText(String.format(Locale.getDefault(), "%d:%02d", minutes, seconds));
             }
 

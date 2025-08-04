@@ -4,6 +4,8 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.CountDownTimer;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
@@ -21,10 +23,19 @@ import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.TextView;
 
+import com.wpmapp.flow.R;
 import com.wpmapp.flow.TypingActivity;
 import com.wpmapp.flow.model.TypingResult;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.Random;
 import java.util.Set;
 
 public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText {
@@ -34,6 +45,8 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
     private final Set<Integer> correctCharPositions = new HashSet<>();
     private ObjectAnimator scrollAnimator;
     private boolean timerStarted = false;
+
+    private Queue<String> leftWords = new LinkedList<>();
 
     public interface TypingListener {
         void onWordTyped();
@@ -66,6 +79,7 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
         setCursorVisible(true);
         setLongClickable(false);
         setTextIsSelectable(false);
+        setRandomText();
 
         // Disable text actions like copy/paste
         setCustomSelectionActionModeCallback(new ActionMode.Callback() {
@@ -121,6 +135,11 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
 
                     // Always move cursor forward
                     lockedCursorPosition = cursorPos + 1;
+
+                    int remainingChars = currentText.length() - lockedCursorPosition;
+                    if (remainingChars == 10) {
+                        append(" "+leftWords.poll());
+                    }
 
                     if (expectedChar == ' ') {
                         if (typingListener != null) {
@@ -198,8 +217,16 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
         Layout layout = getLayout();
         if (layout == null) return;
 
+        // Get total text width
+        float textWidth = layout.getLineWidth(0);
+        int viewWidth = getWidth() - getPaddingLeft() - getPaddingRight();
+
+        // If text fits entirely in the visible area, don't scroll
+        if (textWidth <= viewWidth) {
+            return;
+        }
+
         int cursorX = (int) layout.getPrimaryHorizontal(cursorPos);
-        int width = getWidth() - getPaddingLeft() - getPaddingRight();
 
         int thresholdCharIndex = 13;
         int thresholdX = (int) layout.getPrimaryHorizontal(thresholdCharIndex);
@@ -211,12 +238,10 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
             targetScrollX = 0;
         }
 
-        // Cancel previous animation if running
         if (scrollAnimator != null && scrollAnimator.isRunning()) {
             scrollAnimator.cancel();
         }
 
-        // Animate scrollX property smoothly over 200 ms
         scrollAnimator = ObjectAnimator.ofInt(this, "scrollX", getScrollX(), targetScrollX);
         scrollAnimator.setDuration(200);
         scrollAnimator.start();
@@ -225,13 +250,12 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
         Editable editable = getText();
         if (editable == null) return;
 
-        int whiteColor = 0xFFFFFFFF;
-        int grayColor = 0xFF575757;
-        int redColor = 0xFFF85858;
+        final int whiteColor = 0xFFFFFFFF;
+        final int grayColor = 0xFF575757;
+        final int redColor = 0xFFF85858;
 
         int currentPos = lockedCursorPosition - 1;
         if (currentPos >= 0 && currentPos < editable.length()) {
-            // Check and apply color only if needed
             if (wrongCharPositions.contains(currentPos)) {
                 if (!hasColorSpan(editable, currentPos, redColor)) {
                     removeSpansAtPosition(editable, currentPos);
@@ -246,17 +270,20 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
             }
         }
 
-        // Lazy-gray color rest (on-demand only, or occasionally)
-        post(() -> {
-            for (int i = lockedCursorPosition; i < editable.length(); i++) {
+        // Offload gray-coloring to a background thread and throttle
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+            Editable ed = getText();
+            if (ed == null) return;
+
+            for (int i = lockedCursorPosition; i < ed.length(); i++) {
                 if (!wrongCharPositions.contains(i) && !correctCharPositions.contains(i)) {
-                    if (!hasColorSpan(editable, i, grayColor)) {
-                        removeSpansAtPosition(editable, i);
-                        editable.setSpan(new ForegroundColorSpan(grayColor), i, i + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+                    if (!hasColorSpan(ed, i, grayColor)) {
+                        removeSpansAtPosition(ed, i);
+                        ed.setSpan(new ForegroundColorSpan(grayColor), i, i + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
                     }
                 }
             }
-        });
+        }, 50); // Slight delay to avoid blocking fast typing
     }
     private boolean hasColorSpan(Editable editable, int pos, int color) {
         for (ForegroundColorSpan span : editable.getSpans(pos, pos + 1, ForegroundColorSpan.class)) {
@@ -302,5 +329,49 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
         if (typingListener != null) {
             typingListener.onCorrectWordCountUpdated(wordCount);
         }
+    }
+    private void setRandomText() {
+        try {
+            String randomText = getRandomTextFromRaw(R.raw.texts);
+            String[] words = randomText.split("\\s+"); // Split by whitespace
+
+            int initialWordCount = 7;
+            StringBuilder firstWords = new StringBuilder();
+
+            // Add first 5 words to the EditText
+            for (int i = 0; i < Math.min(initialWordCount, words.length); i++) {
+                firstWords.append(words[i]).append(" ");
+            }
+            setText(firstWords.toString().trim());
+
+            // Clear old words from the queue
+            leftWords.clear();
+
+            // Add remaining words to the queue
+            for (int i = initialWordCount; i < words.length; i++) {
+                leftWords.add(words[i]);  // add() adds to the end of the queue
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    private String getRandomTextFromRaw(int rawResId) throws IOException {
+        InputStream is = getResources().openRawResource(rawResId);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder allText = new StringBuilder();
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            allText.append(line).append("\n");
+        }
+        reader.close();
+
+        // Split texts by empty line(s)
+        String[] texts = allText.toString().split("\\n\\s*\\n");
+
+        Random random = new Random();
+        int index = random.nextInt(texts.length);
+        return texts[index].trim();
     }
 }

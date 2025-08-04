@@ -50,6 +50,7 @@
         android:background="@color/background_dark"
         android:cursorVisible="true"
         android:focusable="true"
+        android:text=""
         android:focusableInTouchMode="true"
         android:fontFamily="@font/roboto_medium"
         android:inputType="textNoSuggestions"
