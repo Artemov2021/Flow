@@ -294,7 +294,6 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
             // Do NOT set isTimerRunning = false here
         }
     }
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -310,65 +309,5 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
 
 
 
-
-
-
-
-
-
-
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void disableCursorMovement() {
-        editText.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
-            @Override
-            public boolean onCreateActionMode(ActionMode mode, Menu menu) {
-                return false;
-            }
-
-            @Override
-            public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-                return false;
-            }
-
-            @Override
-            public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-                return false;
-            }
-
-            @Override
-            public void onDestroyActionMode(ActionMode mode) {
-            }
-        });
-
-        // Prevent touch selection
-        editText.setLongClickable(false);
-        editText.setTextIsSelectable(false);
-        editText.setFocusable(true);
-        editText.setFocusableInTouchMode(true);
-
-        // Intercept touch to disallow cursor movement
-        editText.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                // Consume touch event to prevent cursor move
-                return true;
-            }
-        });
-    }
-
-    private void setColorfulText() {
-        EditText editText = findViewById(R.id.editText);
-
-        String text = "Hello colorful world!";
-
-        SpannableStringBuilder spannable = new SpannableStringBuilder(text);
-
-        spannable.setSpan(new ForegroundColorSpan(Color.RED), 0, 5, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannable.setSpan(new ForegroundColorSpan(Color.BLUE), 6, 14, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        spannable.setSpan(new ForegroundColorSpan(Color.GREEN), 15, text.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        editText.setText(spannable);
-    }
 
 }

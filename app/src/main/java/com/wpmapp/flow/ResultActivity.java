@@ -93,6 +93,7 @@ public class ResultActivity extends AppCompatActivity {
 
         setWMPMargin(wpm);
         setWPMAnimation(result.correctWords);
+        setResultDashboardAnimation(result);
 
         Log.d("CustomEditText","Result: typed words: "+result.typedWords);
     }
@@ -127,5 +128,8 @@ public class ResultActivity extends AppCompatActivity {
         });
 
         animator.start();
+    }
+    private void setResultDashboardAnimation(TypingResult result) {
+
     }
 }
