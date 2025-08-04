@@ -51,7 +51,8 @@ import java.util.Random;
 public class TypingActivity extends AppCompatActivity implements CustomEditText.TypingListener  {
 
     private CountDownTimer countDownTimer;
-    private boolean timerStarted = false;
+    private boolean isTimerRunning = false;
+    private long timeLeftInMillis = 60_000; // 1 minute default
     private TextView timerText;
     private CustomEditText editText;
 
@@ -73,6 +74,7 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         setTextFieldFocused();
         setTextFieldMoveListener();
         setKeyboardHideListener();
+        setTimerListener();
     }
 
     @Override
@@ -117,9 +119,15 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Cancel timer here if running
+                if (countDownTimer != null) {
+                    countDownTimer.cancel();
+                    isTimerRunning = false;
+                }
                 Intent intent = new Intent(TypingActivity.this, MainActivity.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
+                finish(); // finish this activity if you want to remove it from back stack
             }
         });
     }
@@ -231,21 +239,23 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
+    private void setTimerListener() {
+        editText.setTimerStartListener(new CustomEditText.TimerStartListener() {
+            @Override
+            public void onStartTimer(long durationMillis) {
+                startTimer(durationMillis);
+            }
+        });
+    }
+    public void startTimer(long millis) {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
 
-
-
-
-
-
-
-
-
-
-    public void startTimer() {
-        countDownTimer = new CountDownTimer(60_000, 1_000) {  // 1 minute, ticking every second
-
+        countDownTimer = new CountDownTimer(millis, 1_000) {
             @Override
             public void onTick(long millisUntilFinished) {
+                timeLeftInMillis = millisUntilFinished;
                 int secondsLeft = (int) (millisUntilFinished / 1000);
                 int minutes = secondsLeft / 60;
                 int seconds = secondsLeft % 60;
@@ -254,11 +264,14 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
 
             @Override
             public void onFinish() {
+                isTimerRunning = false;
                 timerText.setText("0:00");
                 closeKeyboard();
                 openResultActivity();
             }
         }.start();
+
+        isTimerRunning = true;
     }
     private void closeKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -278,6 +291,15 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         super.onPause();
         if (countDownTimer != null) {
             countDownTimer.cancel();
+            // Do NOT set isTimerRunning = false here
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (isTimerRunning && timeLeftInMillis > 0) {
+            startTimer(timeLeftInMillis);
         }
     }
 

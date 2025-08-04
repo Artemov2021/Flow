@@ -46,15 +46,27 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
     private ObjectAnimator scrollAnimator;
     private boolean timerStarted = false;
 
+    private TimerStartListener timerStartListener;
+
     private Queue<String> leftWords = new LinkedList<>();
 
     public interface TypingListener {
         void onWordTyped();
         void onCorrectWordCountUpdated(int correctWordCount);
     }
+
+    // In CustomEditText:
+    public interface TimerStartListener {
+        void onStartTimer(long durationMillis);
+    }
+
     private TypingListener typingListener;
     public void setTypingListener(TypingListener listener) {
         this.typingListener = listener;
+    }
+
+    public void setTimerStartListener(TimerStartListener listener) {
+        this.timerStartListener = listener;
     }
 
 
@@ -119,11 +131,11 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
             @Override
             public boolean commitText(CharSequence text, int newCursorPosition) {
                 if (!timerStarted && text.length() > 0) {
-                    // Start timer here - notify your activity or start directly
+                    // This means first character typed
                     if (getContext() instanceof TypingActivity) {
-                        ((TypingActivity) getContext()).startTimer();
+                        ((TypingActivity) getContext()).startTimer(60_000);  // pass 1 minute or your duration here
                     }
-                    timerStarted = true;
+                    timerStarted = true;  // prevent restarting timer on subsequent keys
                 }
 
                 int cursorPos = getSelectionStart();
