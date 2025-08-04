@@ -33,12 +33,12 @@
         android:id="@+id/wpmValue"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="0"
+        android:layout_marginStart="75dp"
+        android:layout_marginTop="190dp"
+        android:fontFamily="@font/roboto_semi_bold"
+        android:text="200"
         android:textColor="@android:color/white"
         android:textSize="84sp"
-        android:fontFamily="@font/roboto_semi_bold"
-        android:layout_marginStart="85dp"
-        android:layout_marginTop="185dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -47,7 +47,7 @@
         android:layout_width="97dp"
         android:layout_height="34dp"
         android:src="@drawable/wpm"
-        android:layout_marginStart="7dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="57dp"
         app:layout_constraintStart_toEndOf="@id/wpmValue"
         app:layout_constraintTop_toTopOf="@id/wpmValue" />

@@ -37,6 +37,7 @@ import android.widget.TextView;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.wpmapp.flow.model.TypingResult;
 import com.wpmapp.flow.views.CustomEditText;
 
 import java.io.BufferedReader;
@@ -47,12 +48,15 @@ import java.util.Locale;
 import java.util.Random;
 
 
-public class TypingActivity extends AppCompatActivity  {
+public class TypingActivity extends AppCompatActivity implements CustomEditText.TypingListener  {
 
     private CountDownTimer countDownTimer;
     private boolean timerStarted = false;
     private TextView timerText;
-    private EditText editText;
+    private CustomEditText editText;
+
+    private int typedWords;
+    private int correctWords;
 
 
     @Override
@@ -61,6 +65,7 @@ public class TypingActivity extends AppCompatActivity  {
         setContentView(R.layout.activity_typing);
 
         editText = findViewById(R.id.editText);
+        editText.setTypingListener(this);
         timerText = findViewById(R.id.timerText);
 
         setSwipeToShowBars();
@@ -69,6 +74,15 @@ public class TypingActivity extends AppCompatActivity  {
         setTextFieldMoveListener();
         setKeyboardHideListener();
         setRandomText();
+    }
+
+    @Override
+    public void onWordTyped() {
+        typedWords++;  // Your logic here
+    }
+    @Override
+    public void onCorrectWordCountUpdated(int correctWordCount) {
+        this.correctWords = correctWordCount;
     }
 
     private void setSwipeToShowBars() {
@@ -245,6 +259,15 @@ public class TypingActivity extends AppCompatActivity  {
         return texts[index].trim();
     }
 
+
+
+
+
+
+
+
+
+
     public void startTimer() {
         countDownTimer = new CountDownTimer(5_000, 1_000) {  // 1 minute, ticking every second
 
@@ -271,9 +294,11 @@ public class TypingActivity extends AppCompatActivity  {
         }
     }
     private void openResultActivity() {
+        TypingResult result = new TypingResult(typedWords, correctWords);
         Intent intent = new Intent(this, ResultActivity.class);
+        intent.putExtra("typing_result", result);  // pass TypingResult in Intent
         startActivity(intent);
-        finish(); // Optional: close current activity if you want
+        finish();
     }
     @Override
     protected void onPause() {
@@ -282,6 +307,11 @@ public class TypingActivity extends AppCompatActivity  {
             countDownTimer.cancel();
         }
     }
+
+
+
+
+
 
 
 
@@ -331,8 +361,6 @@ public class TypingActivity extends AppCompatActivity  {
             }
         });
     }
-
-
 
     private void setColorfulText() {
         EditText editText = findViewById(R.id.editText);

@@ -22,18 +22,27 @@ import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.TextView;
 
 import com.wpmapp.flow.TypingActivity;
+import com.wpmapp.flow.model.TypingResult;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText {
-    private int lockedCursorPosition = 0;
-    private int correctWordCount = 0;
+    private int lockedCursorPosition;
     private boolean isProgrammaticSelection = false;
     private final Set<Integer> wrongCharPositions = new HashSet<>();
     private final Set<Integer> correctCharPositions = new HashSet<>();
     private ObjectAnimator scrollAnimator;
     private boolean timerStarted = false;
+
+    public interface TypingListener {
+        void onWordTyped();
+        void onCorrectWordCountUpdated(int correctWordCount);
+    }
+    private TypingListener typingListener;
+    public void setTypingListener(TypingListener listener) {
+        this.typingListener = listener;
+    }
 
 
     public CustomEditText(Context context) {
@@ -113,11 +122,17 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                     // Always move cursor forward
                     lockedCursorPosition = cursorPos + 1;
 
-                    if (typedChar == expectedChar) {
+                    if (expectedChar == ' ') {
+                        if (typingListener != null) {
+                            typingListener.onWordTyped();
+                        }
+                    }
+
+                    if (expectedChar == ' ' && typedChar != expectedChar) {
+                        return false;
+                    } else if (typedChar == expectedChar) {
                         // Correct char: remove from wrong positions if previously wrong
                         wrongCharPositions.remove(cursorPos);
-                    } else if (expectedChar == ' ') {
-                        return false;
                     } else {
                         // Wrong char: add position to wrong set
                         wrongCharPositions.add(cursorPos);
@@ -284,7 +299,8 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
             }
         }
 
-        correctWordCount = wordCount;
-        Log.d("CustomEditText", "Correct words: " + correctWordCount);
+        if (typingListener != null) {
+            typingListener.onCorrectWordCountUpdated(wordCount);
+        }
     }
 }

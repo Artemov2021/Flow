@@ -1,10 +1,15 @@
 package com.wpmapp.flow;
 
+import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
@@ -13,6 +18,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.wpmapp.flow.model.TypingResult;
 
 public class ResultActivity extends AppCompatActivity {
 
@@ -23,10 +30,21 @@ public class ResultActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result);
 
+        wpmValue = findViewById(R.id.wpmValue);
+
+
+        // Retrieve TypingResult from Intent
+        @SuppressLint("UnsafeIntentLaunch")
+        TypingResult result = (TypingResult) getIntent().getSerializableExtra("typing_result");
+        if (result == null) {
+            // fallback or error handling
+            result = new TypingResult(0, 0);
+        }
+
+        setResult(result);  // Now call your own method to update UI
+
         setSwipeToShowBars();
         setBackButtonListener();
-
-        wpmValue = findViewById(R.id.wpmValue);
 
     }
     private void setSwipeToShowBars() {
@@ -67,5 +85,47 @@ public class ResultActivity extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+
+    public void setResult(TypingResult result) {
+        String wpm = String.valueOf(result.typedWords);
+
+        setWMPMargin(wpm);
+        setWPMAnimation(result.correctWords);
+
+        Log.d("CustomEditText","Result: typed words: "+result.typedWords);
+    }
+    private void setWMPMargin(String wpm) {
+        int startMargin = 0;
+        if (wpm.length() == 1) {
+            startMargin = 120;
+        } else if (wpm.length() == 2) {
+            startMargin = 90;
+        } else if (wpm.length() == 3) {
+            startMargin = 75;
+        }
+
+        int marginStartPx = (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP,
+                startMargin,
+                getResources().getDisplayMetrics()
+        );
+
+        // Get current layout params
+        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) wpmValue.getLayoutParams();
+        params.setMarginStart(marginStartPx);  // Only affects start (left in LTR)
+        wpmValue.setLayoutParams(params);
+    }
+    private void setWPMAnimation(int wpm) {
+        ValueAnimator animator = ValueAnimator.ofInt(0, wpm);
+        animator.setDuration(1000); // 1 second (1000 ms)
+
+        animator.addUpdateListener(animation -> {
+            int animatedValue = (int) animation.getAnimatedValue();
+            wpmValue.setText(String.valueOf(animatedValue));
+        });
+
+        animator.start();
     }
 }
