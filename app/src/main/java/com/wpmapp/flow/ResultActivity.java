@@ -1,29 +1,38 @@
 package com.wpmapp.flow;
 
+import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.wpmapp.flow.model.TypingResult;
+import com.wpmapp.flow.views.AccuracyLineView;
 
 public class ResultActivity extends AppCompatActivity {
 
     private TextView wpmValue;
+    private FrameLayout resultDashboard;
+    private TextView totalTyped;
+    private TextView correctPercentage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,7 +40,9 @@ public class ResultActivity extends AppCompatActivity {
         setContentView(R.layout.activity_result);
 
         wpmValue = findViewById(R.id.wpmValue);
-
+        resultDashboard = findViewById(R.id.resultDashboard);
+        totalTyped = findViewById(R.id.totalTyped);
+        correctPercentage = findViewById(R.id.correctPercentage);
 
         // Retrieve TypingResult from Intent
         @SuppressLint("UnsafeIntentLaunch")
@@ -93,7 +104,8 @@ public class ResultActivity extends AppCompatActivity {
 
         setWMPMargin(wpm);
         setWPMAnimation(result.correctWords);
-        setResultDashboardAnimation(result);
+        setResultDashboardValues(result);
+        setResultDashboardAnimation();
 
         Log.d("CustomEditText","Result: typed words: "+result.typedWords);
     }
@@ -129,7 +141,51 @@ public class ResultActivity extends AppCompatActivity {
 
         animator.start();
     }
-    private void setResultDashboardAnimation(TypingResult result) {
+    private void setResultDashboardValues(TypingResult result) {
+        totalTyped.setText(String.format("Total typed words: %s",result.typedWords));
+        int percentage = (int) ((result.correctWords / (double) result.typedWords) * 100);
+        setAccuracyLine(percentage);
+        correctPercentage.setText(percentage + "%");
+    }
+    private void setAccuracyLine(int percentage) {
+        // 1. Reference the FrameLayout (must exist in your XML layout)
+        FrameLayout resultDashboard = findViewById(R.id.resultDashboard);
 
+        // 2. Create the AccuracyLineView dynamically
+        AccuracyLineView accuracyLine = new AccuracyLineView(this);
+
+        // 3. Define layout parameters with margins
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                dpToPx(10)
+        );
+
+        // 4. Set margins: start=30dp, top=70dp
+        params.setMargins(dpToPx(30), dpToPx(70), dpToPx(30), 0);
+
+        // 5. Add the custom view to the FrameLayout
+        resultDashboard.addView(accuracyLine, params);
+
+        // 6. Set the percentage value
+        accuracyLine.setPercentage(percentage); // Example
+    }
+    private void setResultDashboardAnimation() {
+        // Start fully transparent and shifted 100px to the right
+        resultDashboard.setAlpha(0f);
+        resultDashboard.setTranslationX(100f);
+        resultDashboard.setVisibility(View.VISIBLE); // Ensure it's in the layout
+
+        // Animate both alpha and translationX together after 1 second
+        resultDashboard.animate()
+                .alpha(1f)                // Fade in
+                .translationX(0f)         // Slide to original position
+                .setDuration(700)         // Animation duration (smooth fade+slide)
+                .setStartDelay(1000)      // Delay before starting (1 second)
+                .start();
+    }
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, dp,getResources().getDisplayMetrics()
+        );
     }
 }

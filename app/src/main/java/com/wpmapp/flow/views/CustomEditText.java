@@ -153,9 +153,14 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                         append(" "+leftWords.poll());
                     }
 
-                    if (expectedChar == ' ') {
-                        if (typingListener != null) {
-                            typingListener.onWordTyped();
+                    int nextPos = cursorPos + 1;
+                    if (nextPos < currentText.length()) {
+                        char nextChar = currentText.charAt(nextPos);
+                        if (nextChar == ' ') {
+                            // The next character to type after current position is a space
+                            if (typingListener != null) {
+                                typingListener.onWordTyped();
+                            }
                         }
                     }
 
