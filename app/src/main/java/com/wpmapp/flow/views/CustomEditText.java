@@ -3,9 +3,12 @@ package com.wpmapp.flow.views;
 import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Vibrator;
+import android.os.VibratorManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
@@ -46,13 +49,17 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
     private ObjectAnimator scrollAnimator;
     private boolean timerStarted = false;
 
+    private Queue<String> leftWords = new LinkedList<>();
+
     private TimerStartListener timerStartListener;
 
-    private Queue<String> leftWords = new LinkedList<>();
+    private TypingListener typingListener;
+
 
     public interface TypingListener {
         void onWordTyped();
         void onCorrectWordCountUpdated(int correctWordCount);
+        void onWrongCharTyped();
     }
 
     // In CustomEditText:
@@ -60,7 +67,7 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
         void onStartTimer(long durationMillis);
     }
 
-    private TypingListener typingListener;
+
     public void setTypingListener(TypingListener listener) {
         this.typingListener = listener;
     }
@@ -133,7 +140,7 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                 if (!timerStarted && text.length() > 0) {
                     // This means first character typed
                     if (getContext() instanceof TypingActivity) {
-                        ((TypingActivity) getContext()).startTimer(2_000);  // pass 1 minute or your duration here
+                        ((TypingActivity) getContext()).startTimer(60_000);  // pass 1 minute or your duration here
                     }
                     timerStarted = true;  // prevent restarting timer on subsequent keys
                 }
@@ -165,12 +172,14 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                     }
 
                     if (expectedChar == ' ' && typedChar != expectedChar) {
+                        typingListener.onWrongCharTyped();
                         return false;
                     } else if (typedChar == expectedChar) {
                         // Correct char: remove from wrong positions if previously wrong
                         wrongCharPositions.remove(cursorPos);
                     } else {
                         // Wrong char: add position to wrong set
+                        typingListener.onWrongCharTyped();
                         wrongCharPositions.add(cursorPos);
                     }
 

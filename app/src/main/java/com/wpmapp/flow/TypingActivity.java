@@ -10,6 +10,8 @@ import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -84,6 +86,10 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
     @Override
     public void onCorrectWordCountUpdated(int correctWordCount) {
         this.correctWords = correctWordCount;
+    }
+    @Override
+    public void onWrongCharTyped() {
+        vibrate();
     }
 
     private void setSwipeToShowBars() {
@@ -285,6 +291,16 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         intent.putExtra("typing_result", result);  // pass TypingResult in Intent
         startActivity(intent);
         finish();
+    }
+    private void vibrate() {
+        Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null && vibrator.hasVibrator()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createOneShot(70, VibrationEffect.DEFAULT_AMPLITUDE));
+            } else {
+                vibrator.vibrate(70);
+            }
+        }
     }
     @Override
     protected void onPause() {
