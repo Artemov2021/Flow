@@ -133,7 +133,7 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                 if (!timerStarted && text.length() > 0) {
                     // This means first character typed
                     if (getContext() instanceof TypingActivity) {
-                        ((TypingActivity) getContext()).startTimer(60_000);  // pass 1 minute or your duration here
+                        ((TypingActivity) getContext()).startTimer(2_000);  // pass 1 minute or your duration here
                     }
                     timerStarted = true;  // prevent restarting timer on subsequent keys
                 }

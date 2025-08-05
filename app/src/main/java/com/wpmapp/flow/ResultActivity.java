@@ -5,24 +5,30 @@ import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.wpmapp.flow.model.TypingResult;
 import com.wpmapp.flow.views.AccuracyLineView;
@@ -33,6 +39,10 @@ public class ResultActivity extends AppCompatActivity {
     private FrameLayout resultDashboard;
     private TextView totalTyped;
     private TextView correctPercentage;
+    private LinearLayout tryAgainButton;
+    private FrameLayout tryAgainButtonContainer;
+    private ImageView tryAgainIcon;
+    private TextView tryAgainText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +116,8 @@ public class ResultActivity extends AppCompatActivity {
         setWPMAnimation(result.correctWords);
         setResultDashboardValues(result);
         setResultDashboardAnimation();
-
-        Log.d("CustomEditText","Result: typed words: "+result.typedWords);
+        setTryAgainButton();
+        setTryAgainButtonAnimation();
     }
     private void setWMPMargin(String wpm) {
         int startMargin = 0;
@@ -182,6 +192,120 @@ public class ResultActivity extends AppCompatActivity {
                 .setDuration(700)         // Animation duration (smooth fade+slide)
                 .setStartDelay(1000)      // Delay before starting (1 second)
                 .start();
+    }
+    private void setTryAgainButton() {
+        // === Outer container that will be animated ===
+        tryAgainButtonContainer = new FrameLayout(this);
+        FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dpToPx(62)
+        );
+        containerParams.gravity = Gravity.BOTTOM;
+        containerParams.bottomMargin = dpToPx(55);
+        containerParams.leftMargin = dpToPx(23);
+        containerParams.rightMargin = dpToPx(23);
+        tryAgainButtonContainer.setLayoutParams(containerParams);
+
+        // === Actual button inside container ===
+        tryAgainButton = new LinearLayout(this);
+        tryAgainButton.setOrientation(LinearLayout.HORIZONTAL);
+        tryAgainButton.setGravity(Gravity.CENTER);
+        tryAgainButton.setPadding(dpToPx(16), 0, dpToPx(16), 0);
+
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#171717"));
+        background.setCornerRadius(dpToPx(24));
+        tryAgainButton.setBackground(background);
+
+        // Match container size
+        FrameLayout.LayoutParams buttonParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        tryAgainButton.setLayoutParams(buttonParams);
+
+        // === Icon ===
+        tryAgainIcon = new ImageView(this);
+        tryAgainIcon.setImageResource(R.drawable.try_again_symbol);
+        tryAgainIcon.setColorFilter(Color.parseColor("#CECECE"));
+        LinearLayout.LayoutParams iconParams = new LinearLayout.LayoutParams(dpToPx(19), dpToPx(19));
+        iconParams.setMarginEnd(dpToPx(5));
+        tryAgainIcon.setLayoutParams(iconParams);
+
+        // === Text ===
+        tryAgainText = new TextView(this);
+        tryAgainText.setText("Try again");
+        tryAgainText.setTextSize(21);
+        tryAgainText.setTextColor(Color.parseColor("#CECECE"));
+        tryAgainText.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_semi_bold));
+
+        // Add icon + text to button
+        tryAgainButton.addView(tryAgainIcon);
+        tryAgainButton.addView(tryAgainText);
+
+        // Add button to container
+        tryAgainButtonContainer.addView(tryAgainButton);
+
+        // Add container to root
+        ViewGroup rootView = (ViewGroup) getWindow().getDecorView().getRootView();
+        rootView.addView(tryAgainButtonContainer);
+    }
+    private void setTryAgainButtonAnimation() {
+        tryAgainButton.setAlpha(0f);
+        tryAgainButton.setTranslationX(100f);
+        tryAgainButton.setVisibility(View.VISIBLE);
+
+        tryAgainButton.animate()
+                .alpha(1f)
+                .translationX(0f)
+                .setDuration(700)
+                .setStartDelay(1000)
+                .withEndAction(this::setTryAgainButtonClickAnimation) // Setup scaling click after entrance
+                .start();
+    }
+    @SuppressLint("ClickableViewAccessibility")
+    private void setTryAgainButtonClickAnimation() {
+        if (tryAgainButtonContainer == null) return;
+
+        tryAgainButtonContainer.setClickable(true);
+        tryAgainButtonContainer.setFocusable(true);
+
+        tryAgainButtonContainer.post(() -> {
+            ViewGroup parent = (ViewGroup) tryAgainButtonContainer.getParent();
+            if (parent != null) {
+                parent.setClipChildren(false);
+                parent.setClipToPadding(false);
+            }
+
+            tryAgainButtonContainer.setPivotX(tryAgainButtonContainer.getWidth() / 2f);
+            tryAgainButtonContainer.setPivotY(tryAgainButtonContainer.getHeight() / 2f);
+
+            tryAgainButtonContainer.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        tryAgainButtonContainer.animate()
+                                .scaleX(0.90f)
+                                .scaleY(0.90f)
+                                .setDuration(100)
+                                .start();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        tryAgainButtonContainer.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start();
+                        break;
+                }
+                return false;
+            });
+
+            tryAgainButtonContainer.setOnClickListener(v -> {
+                Intent intent = new Intent(ResultActivity.this, TypingActivity.class);
+                startActivity(intent);
+            });
+        });
     }
     private int dpToPx(int dp) {
         return (int) TypedValue.applyDimension(
