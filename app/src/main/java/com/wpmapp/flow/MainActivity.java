@@ -1,16 +1,27 @@
 package com.wpmapp.flow;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.res.ResourcesCompat;
 
 import com.google.android.material.button.MaterialButton;
 
@@ -18,13 +29,17 @@ import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
+    private LinearLayout startButton;
+    private FrameLayout startButtonContainer;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         setSwipeToShowBars();
-        setStartButtonListener();
+        setStartButton();
+        setTryAgainButtonClickAnimation();
     }
 
     private void setSwipeToShowBars() {
@@ -55,15 +70,103 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-    private void setStartButtonListener() {
-        MaterialButton customButton = findViewById(R.id.customButton);
-        customButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    private void setStartButton() {
+        // === Outer container that will be animated ===
+        startButtonContainer = new FrameLayout(this);
+        FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                dpToPx(55)
+        );
+        containerParams.gravity = Gravity.BOTTOM;
+        containerParams.bottomMargin = dpToPx(55);
+        containerParams.leftMargin = dpToPx(23);
+        containerParams.rightMargin = dpToPx(23);
+        startButtonContainer.setLayoutParams(containerParams);
+
+        // === Actual button inside container ===
+        startButton = new LinearLayout(this);
+        startButton.setOrientation(LinearLayout.HORIZONTAL);
+        startButton.setGravity(Gravity.CENTER);
+        startButton.setPadding(dpToPx(16), 0, dpToPx(16), 0);
+
+        GradientDrawable background = new GradientDrawable();
+        background.setColor(Color.parseColor("#FFFFFF"));
+        background.setCornerRadius(dpToPx(22));
+        startButton.setBackground(background);
+
+        // Match container size
+        FrameLayout.LayoutParams buttonParams = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+        );
+        startButton.setLayoutParams(buttonParams);
+
+        // === Text ===
+        TextView tryAgainText = new TextView(this);
+        tryAgainText.setText("Start");
+        tryAgainText.setTextSize(21);
+        tryAgainText.setTextColor(Color.parseColor("#000000"));
+        tryAgainText.setTypeface(ResourcesCompat.getFont(this, R.font.roboto_semi_bold));
+
+        // Add text to button
+        startButton.addView(tryAgainText);
+
+        // Add button to container
+        startButtonContainer.addView(startButton);
+
+        // Add container to root
+        ViewGroup rootView = (ViewGroup) getWindow().getDecorView().getRootView();
+        rootView.addView(startButtonContainer);
+    }
+    @SuppressLint("ClickableViewAccessibility")
+    private void setTryAgainButtonClickAnimation() {
+        if (startButtonContainer == null) return;
+
+        startButtonContainer.setClickable(true);
+        startButtonContainer.setFocusable(true);
+
+        startButtonContainer.post(() -> {
+            ViewGroup parent = (ViewGroup) startButtonContainer.getParent();
+            if (parent != null) {
+                parent.setClipChildren(false);
+                parent.setClipToPadding(false);
+            }
+
+            startButtonContainer.setPivotX(startButtonContainer.getWidth() / 2f);
+            startButtonContainer.setPivotY(startButtonContainer.getHeight() / 2f);
+
+            startButtonContainer.setOnTouchListener((v, event) -> {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        startButtonContainer.animate()
+                                .scaleX(0.90f)
+                                .scaleY(0.90f)
+                                .setDuration(100)
+                                .start();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                    case MotionEvent.ACTION_CANCEL:
+                        startButtonContainer.animate()
+                                .scaleX(1f)
+                                .scaleY(1f)
+                                .setDuration(100)
+                                .start();
+                        break;
+                }
+                return false;
+            });
+
+            startButtonContainer.setOnClickListener(v -> {
                 Intent intent = new Intent(MainActivity.this, TypingActivity.class);
                 startActivity(intent);
-            }
+            });
         });
     }
+    private int dpToPx(int dp) {
+        return (int) TypedValue.applyDimension(
+                TypedValue.COMPLEX_UNIT_DIP, dp,getResources().getDisplayMetrics()
+        );
+    }
+
 
 }

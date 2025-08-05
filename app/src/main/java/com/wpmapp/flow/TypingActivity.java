@@ -296,9 +296,9 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
         Vibrator vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         if (vibrator != null && vibrator.hasVibrator()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createOneShot(70, VibrationEffect.DEFAULT_AMPLITUDE));
+                vibrator.vibrate(VibrationEffect.createOneShot(55, VibrationEffect.DEFAULT_AMPLITUDE));
             } else {
-                vibrator.vibrate(70);
+                vibrator.vibrate(55);
             }
         }
     }
