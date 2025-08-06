@@ -22,10 +22,10 @@
         android:layout_width="22dp"
         android:layout_height="22dp"
         android:src="@drawable/timer_symbol"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_marginStart="160dp"
-        android:layout_marginTop="48dp" />
+        android:layout_marginEnd="5dp"
+        app:layout_constraintEnd_toStartOf="@id/timerText"
+        app:layout_constraintTop_toTopOf="@id/timerText"
+        app:layout_constraintBottom_toBottomOf="@id/timerText" />
 
     <TextView
         android:id="@+id/timerText"
@@ -35,22 +35,20 @@
         android:textColor="@android:color/white"
         android:textSize="20sp"
         android:fontFamily="@font/roboto_medium"
-        android:layout_marginStart="187dp"
-        android:layout_marginTop="45dp"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="47dp" />
 
     <com.wpmapp.flow.views.CustomEditText
         android:id="@+id/editText"
         android:layout_width="0dp"
         android:layout_height="85dp"
         android:layout_marginStart="53dp"
-        android:layout_marginTop="400dp"
         android:layout_marginEnd="53dp"
         android:background="@color/background_dark"
         android:cursorVisible="true"
         android:focusable="true"
-        android:text=""
         android:focusableInTouchMode="true"
         android:fontFamily="@font/roboto_medium"
         android:inputType="textNoSuggestions"
@@ -59,9 +57,11 @@
         android:textColor="#575757"
         android:textCursorDrawable="@drawable/custom_cursor"
         android:textSize="30sp"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.5" />
 
 
 

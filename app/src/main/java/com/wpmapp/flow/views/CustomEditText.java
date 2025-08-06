@@ -2,21 +2,14 @@ package com.wpmapp.flow.views;
 
 import android.animation.ObjectAnimator;
 import android.content.Context;
-import android.graphics.Color;
-import android.os.Build;
-import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Vibrator;
-import android.os.VibratorManager;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Layout;
 import android.text.Spannable;
-import android.text.SpannableStringBuilder;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -24,17 +17,14 @@ import android.view.MenuItem;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
-import android.widget.TextView;
 
 import com.wpmapp.flow.R;
 import com.wpmapp.flow.TypingActivity;
-import com.wpmapp.flow.model.TypingResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
@@ -198,7 +188,6 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
 
             @Override
             public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-                Log.d("CustomEditText", "Backspace ignored");
                 return true; // Block delete/backspace
             }
 
@@ -225,10 +214,6 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
     }
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        char c = (char) event.getUnicodeChar();
-        if (c != 0) {
-            Log.d("CustomEditText", "KeyDown typed: " + c);
-        }
         return true; // Block hardware key edits
     }
     @Override

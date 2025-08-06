@@ -9,23 +9,18 @@ import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
 
-import com.google.android.material.button.MaterialButton;
-
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -75,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
         startButtonContainer = new FrameLayout(this);
         FrameLayout.LayoutParams containerParams = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dpToPx(55)
+                dpToPx(53)
         );
         containerParams.gravity = Gravity.BOTTOM;
         containerParams.bottomMargin = dpToPx(55);

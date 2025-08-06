@@ -1,7 +1,5 @@
 package com.wpmapp.flow;
 
-import static androidx.core.content.ContextCompat.getSystemService;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +10,6 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.text.Editable;
-import android.text.Spannable;
-import android.text.SpannableStringBuilder;
-import android.text.TextWatcher;
-import android.text.style.ForegroundColorSpan;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -27,27 +19,17 @@ import android.view.WindowInsetsController;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.view.ActionMode;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.MotionEvent;
 
-import android.view.MotionEvent;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
-import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.wpmapp.flow.model.TypingResult;
 import com.wpmapp.flow.views.CustomEditText;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.Locale;
-import java.util.Random;
 
 
 public class TypingActivity extends AppCompatActivity implements CustomEditText.TypingListener  {
@@ -200,7 +182,7 @@ public class TypingActivity extends AppCompatActivity implements CustomEditText.
     }
     private void setTextFieldMoveListener() {
         View rootView = getWindow().getDecorView().getRootView();
-        int moveDistanceDp = 145;
+        int moveDistanceDp = 115;
         int moveDistancePx = (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP,
                 moveDistanceDp,

@@ -1,15 +1,13 @@
 package com.wpmapp.flow;
 
-import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
@@ -19,13 +17,11 @@ import android.view.Window;
 import android.view.WindowInsets;
 import android.view.WindowInsetsController;
 import android.view.WindowManager;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.res.ResourcesCompat;
@@ -36,6 +32,7 @@ import com.wpmapp.flow.views.AccuracyLineView;
 public class ResultActivity extends AppCompatActivity {
 
     private TextView wpmValue;
+    private TextView record;
     private FrameLayout resultDashboard;
     private TextView totalTyped;
     private TextView correctPercentage;
@@ -53,6 +50,7 @@ public class ResultActivity extends AppCompatActivity {
         resultDashboard = findViewById(R.id.resultDashboard);
         totalTyped = findViewById(R.id.totalTyped);
         correctPercentage = findViewById(R.id.correctPercentage);
+        record = findViewById(R.id.record);
 
         // Retrieve TypingResult from Intent
         @SuppressLint("UnsafeIntentLaunch")
@@ -63,10 +61,23 @@ public class ResultActivity extends AppCompatActivity {
         }
 
         setResult(result);  // Now call your own method to update UI
+        setAndShowRecord(result.correctWords);
 
         setSwipeToShowBars();
         setBackButtonListener();
 
+    }
+    private void setAndShowRecord(int correctWords) {
+        int previousRecord = getRecord();
+        if (correctWords > previousRecord) {
+            SharedPreferences prefs = getSharedPreferences("TypingAppPrefs", MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putInt("wpmRecord", correctWords);  // Save your record
+            editor.apply(); // Apply changes
+            record.setText(String.format("New record: %s",correctWords));
+        } else {
+            record.setText(String.format("Record: %s",previousRecord));
+        }
     }
     private void setSwipeToShowBars() {
         Window window = getWindow();
@@ -110,35 +121,11 @@ public class ResultActivity extends AppCompatActivity {
 
 
     public void setResult(TypingResult result) {
-        String wpm = String.valueOf(result.correctWords);
-
-        setWMPMargin(wpm);
         setWPMAnimation(result.correctWords);
         setResultDashboardValues(result);
         setResultDashboardAnimation();
         setTryAgainButton();
         setTryAgainButtonAnimation();
-    }
-    private void setWMPMargin(String wpm) {
-        int startMargin = 0;
-        if (wpm.length() == 1) {
-            startMargin = 120;
-        } else if (wpm.length() == 2) {
-            startMargin = 90;
-        } else if (wpm.length() == 3) {
-            startMargin = 75;
-        }
-
-        int marginStartPx = (int) TypedValue.applyDimension(
-                TypedValue.COMPLEX_UNIT_DIP,
-                startMargin,
-                getResources().getDisplayMetrics()
-        );
-
-        // Get current layout params
-        ViewGroup.MarginLayoutParams params = (ViewGroup.MarginLayoutParams) wpmValue.getLayoutParams();
-        params.setMarginStart(marginStartPx);  // Only affects start (left in LTR)
-        wpmValue.setLayoutParams(params);
     }
     private void setWPMAnimation(int wpm) {
         ValueAnimator animator = ValueAnimator.ofInt(0, wpm);
@@ -171,7 +158,7 @@ public class ResultActivity extends AppCompatActivity {
         );
 
         // 4. Set margins: start=30dp, top=70dp
-        params.setMargins(dpToPx(30), dpToPx(70), dpToPx(30), 0);
+        params.setMargins(dpToPx(30), dpToPx(66), dpToPx(30), 0);
 
         // 5. Add the custom view to the FrameLayout
         resultDashboard.addView(accuracyLine, params);
@@ -311,5 +298,9 @@ public class ResultActivity extends AppCompatActivity {
         return (int) TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, dp,getResources().getDisplayMetrics()
         );
+    }
+    private int getRecord() {
+        SharedPreferences prefs = getSharedPreferences("TypingAppPrefs", MODE_PRIVATE);
+        return prefs.getInt("wpmRecord", 0);  // 0 is default if no record is saved yet
     }
 }
