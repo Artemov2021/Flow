@@ -10,6 +10,7 @@ import android.text.Layout;
 import android.text.Spannable;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.ActionMode;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -119,20 +120,21 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
 
     @Override
     public InputConnection onCreateInputConnection(EditorInfo outAttrs) {
-        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI | EditorInfo.IME_FLAG_NO_FULLSCREEN | EditorInfo.IME_FLAG_NO_ENTER_ACTION;
-        outAttrs.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+        outAttrs.imeOptions = EditorInfo.IME_FLAG_NO_EXTRACT_UI
+                | EditorInfo.IME_FLAG_NO_FULLSCREEN
+                | EditorInfo.IME_FLAG_NO_ENTER_ACTION;
+        outAttrs.inputType = InputType.TYPE_CLASS_TEXT
+                | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
 
         InputConnection base = super.onCreateInputConnection(outAttrs);
         return new InputConnectionWrapper(base, true) {
 
-            @Override
-            public boolean commitText(CharSequence text, int newCursorPosition) {
+            private boolean handleKey(CharSequence text, int newCursorPosition) {
                 if (!timerStarted && text.length() > 0) {
-                    // This means first character typed
                     if (getContext() instanceof TypingActivity) {
-                        ((TypingActivity) getContext()).startTimer(60_000);  // pass 1 minute or your duration here
+                        ((TypingActivity) getContext()).startTimer(60_000);
                     }
-                    timerStarted = true;  // prevent restarting timer on subsequent keys
+                    timerStarted = true;
                 }
 
                 int cursorPos = getSelectionStart();
@@ -142,34 +144,29 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                     char expectedChar = currentText.charAt(cursorPos);
                     char typedChar = text.charAt(0);
 
-                    // Always move cursor forward
                     lockedCursorPosition = cursorPos + 1;
 
                     int remainingChars = currentText.length() - lockedCursorPosition;
                     if (remainingChars == 10) {
-                        append(" "+leftWords.poll());
+                        append(" " + leftWords.poll());
                     }
 
                     int nextPos = cursorPos + 1;
                     if (nextPos < currentText.length()) {
                         char nextChar = currentText.charAt(nextPos);
-                        if (nextChar == ' ') {
-                            // The next character to type after current position is a space
-                            if (typingListener != null) {
-                                typingListener.onWordTyped();
-                            }
+                        if (nextChar == ' ' && typingListener != null) {
+                            typingListener.onWordTyped();
                         }
                     }
 
-                    if (expectedChar == ' ' && typedChar != expectedChar) {
-                        typingListener.onWrongCharTyped();
+                    Log.d("BugLog", String.format("Expected char: %s", expectedChar));
+                    if (typedChar != expectedChar && expectedChar == ' ') {
+                        if (typingListener != null) typingListener.onWrongCharTyped();
                         return false;
                     } else if (typedChar == expectedChar) {
-                        // Correct char: remove from wrong positions if previously wrong
                         wrongCharPositions.remove(cursorPos);
                     } else {
-                        // Wrong char: add position to wrong set
-                        typingListener.onWrongCharTyped();
+                        if (typingListener != null) typingListener.onWrongCharTyped();
                         wrongCharPositions.add(cursorPos);
                     }
 
@@ -185,28 +182,35 @@ public class CustomEditText extends androidx.appcompat.widget.AppCompatEditText 
                 return false;
             }
 
-
             @Override
-            public boolean deleteSurroundingText(int beforeLength, int afterLength) {
-                return true; // Block delete/backspace
+            public boolean commitText(CharSequence text, int newCursorPosition) {
+                return handleKey(text, newCursorPosition);
             }
 
             @Override
             public boolean setComposingText(CharSequence text, int newCursorPosition) {
-                return true; // Block IME composing text
+                // Treat composing exactly like commit (but still block actual showing)
+                return handleKey(text, newCursorPosition);
+            }
+
+            @Override
+            public boolean deleteSurroundingText(int beforeLength, int afterLength) {
+                return true; // block backspace
             }
 
             @Override
             public boolean setComposingRegion(int start, int end) {
-                return true;
+                return true; // block IME highlight
             }
 
             @Override
             public boolean finishComposingText() {
-                return true;
+                return true; // block finalize
             }
         };
     }
+
+
 
     @Override
     public boolean onTextContextMenuItem(int id) {
